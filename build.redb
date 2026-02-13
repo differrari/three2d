@@ -1,9 +1,17 @@
 @includeC("redbuild.h")
 @includeC("syscalls/syscalls.h")
 
-bool gpu {
+bool include_gpu() {
     if (not make_run("~/redlib","cross")) { return false; }
     if (not quick_cred("mesh.cred","mesh")){ return false; }
+    source("obj.c");
+    source("render.c");
+    source("shaders.c");
+    source("mesh.c");
+    return true;
+}
+
+bool example {
     new_module("gpu");
     set_name("rend");
     
@@ -12,11 +20,8 @@ bool gpu {
     set_package_type(package_red);
     set_target(target_native);
     
-    source("obj.c");
+    if (not include_gpu()){ return false; }
     source("examples/mesh_load.c");
-    source("render.c");
-    source("shaders.c");
-    source("mesh.c");
     
     if (compile()){
         gen_compile_commands(0);
@@ -28,5 +33,5 @@ bool gpu {
 int main {
     defer emit_compile_commands();
     rebuild_self();
-    gpu();
+    example();
 }

@@ -13,7 +13,7 @@ int main(int argc, char* argv[]){
     t2d_pipeline pipeline = t2d_make_pipeline(ctx.width, ctx.height, ctx.fb);
     
     size_t file_size = 0;
-    char *file = read_full_file("/resources/Windmill.obj",&file_size);
+    char *file = read_full_file("/resources/Borb.obj",&file_size);
     mesh m = parse_obj(file, file_size, primitives_trig);
     
     t2d_vert_shader(&pipeline, default_vert_shader);
@@ -30,11 +30,13 @@ int main(int argc, char* argv[]){
     vector3 *vbuf_ptr = t2d_get_buffer_ptr(vbuf);
     int *sbuf_ptr = t2d_get_buffer_ptr(sbuf);
     
-    for (size_t i = 0; i < vertices_count; i++)
+    for (size_t i = 0; i < vertices_count; i++){//CRED: increments
         vbuf_ptr[i] = mesh_get_vertex(&m, i);
+    }
     
-    for (size_t i = 0; i < segments_count; i++)
+    for (size_t i = 0; i < segments_count; i++){//CRED: increments
         sbuf_ptr[i] = mesh_get_segment(&m, i);
+    }
     
     profiler_init();
     u64 frames;
@@ -45,22 +47,22 @@ int main(int argc, char* argv[]){
         t2d_set_buffer(&enc, sbuf, segments_count, BUF_SEGMENTS);
         if (t2d_commit_encode(&enc) < 0){
             print("Encoding error");
-            break;
+            break;//CRED: break, continue
         }
         
         commit_draw_ctx(&ctx);
         
-        kbd_event ev = {};
+        kbd_event ev = {};//CRED: zero mem init (default?)
         read_event(&ev);
-        if (ev.key == KEY_ESC){
+        if (ev.key == KEY_ESC){//CRED: math needs to allow chains too. Variables and chains need to be joined
             destroy_draw_ctx(&ctx);
             return 0;
         } 
         
         u64 d = profiler_delta();
-        avg += d;
-        print("Delta %f",1.f/((double)d/1000));
-        frames++;
+        avg += d;//CRED: +(-,/,*)= increments
+        print("Delta %f",1.f/((double)d/1000));//CRED: casts might be needed 
+        frames++;//CRED: ++(--) increments
         
     }
 
