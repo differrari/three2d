@@ -3,17 +3,19 @@
 
 bool gpu {
     if (not make_run("~/redlib","cross")) { return false; }
-    if (not quick_cred("mesh.cred","mesh")){ return false; }
+    //if (not quick_cred("mesh.cred","mesh")){ return false; }
     new_module("gpu");
     set_name("rend");
     
-    debug();
+    //debug();
     
     set_package_type(package_red);
     set_target(target_native);
     
     source("obj.c");
-    source("main.c");
+    source("examples/mesh_load.c");
+    source("three2d.c");
+    source("shaders.c");
     source("mesh.c");
     
     if (compile()){

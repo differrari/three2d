@@ -1,14 +1,7 @@
 #include "data/struct/chunk_array.h"
 
 #include "types/vector3.h"
-
-typedef enum {
-	primitives_none,
-	primitives_pixel,
-	primitives_line,
-	primitives_trig,
-	primitives_quad,
-} primitives;
+#include "three2d.h"
 
 char* primitives_to_string(primitives val);
 
