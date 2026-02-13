@@ -13,35 +13,28 @@ int main(int argc, char* argv[]){
     t2d_pipeline pipeline = t2d_make_pipeline(ctx.width, ctx.height, ctx.fb);
     
     size_t file_size = 0;
-    char *file = read_full_file("/resources/Zuzie.obj",&file_size);
+    char *file = read_full_file("/resources/Windmill.obj",&file_size);
     mesh m = parse_obj(file, file_size, primitives_trig);
     
     t2d_vert_shader(&pipeline, default_vert_shader);
     t2d_frag_shader(&pipeline, default_frag_shader);
     
-    int vertices_count = chunk_array_count(m.vertices);
-    int segments_count = chunk_array_count(m.segments);
+    size_t vertices_count = mesh_num_verts(&m);
+    size_t segments_count = chunk_array_count(m.segments);
     
     int vbuf = t2d_create_buffer(BUF_VERTICES, vertices_count);
     int sbuf = t2d_create_buffer(BUF_SEGMENTS, segments_count);
     
-    print("Vert buffer %i Seg buffer %i",vbuf,sbuf);
-    
-    print("%i segments",segments_count);
-    
     t2d_make_camera(&pipeline, 72, (float)ctx.width/(float)ctx.height, 0.1f, 100);
-    
-    size_t num_segments = mesh_num_segments(&m);
-    size_t num_verts = mesh_num_verts(&m);
     
     vector3 *vbuf_ptr = t2d_get_buffer_ptr(vbuf);
     int *sbuf_ptr = t2d_get_buffer_ptr(sbuf);
     
-    for (int i = 0; i < vertices_count; i++)
-        vbuf_ptr[i] = *(vector3*)chunk_array_get(m.vertices, i);
+    for (size_t i = 0; i < vertices_count; i++)
+        vbuf_ptr[i] = mesh_get_vertex(&m, i);
     
-    for (int i = 0; i < segments_count; i++)
-        sbuf_ptr[i] = *(int*)chunk_array_get(m.segments, i);
+    for (size_t i = 0; i < segments_count; i++)
+        sbuf_ptr[i] = mesh_get_segment(&m, i);
     
     profiler_init();
     u64 frames;

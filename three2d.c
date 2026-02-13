@@ -100,10 +100,10 @@ tern draw(int segment_index, t2d_encode_job *job, vector2 origin, gpu_size scree
     int i1 = segments[segment_index+1];
     int i2 = job->pipeline.prim_type > primitives_line ? segments[segment_index+2] : -1;
     int i3 = job->pipeline.prim_type > primitives_trig ? segments[segment_index+3] : -1;
-    assert_true(i0 >= 0 && (uint64_t)i0 < job->vcount, "Wrong index %i. Num verts %i",i0,job->vcount);
-    assert_true(i1 >= 0 && (uint64_t)i1 < job->vcount, "Wrong index %i. Num verts %i",i1,job->vcount);
-    if (i2 != -1) assert_true(i2 >= 0 && (uint64_t)i2 < job->vcount, "Wrong index %i. Num verts %i",i2,job->vcount);
-    if (i3 != -1) assert_true(i3 >= 0 && (uint64_t)i3 < job->vcount, "Wrong index %i. Num verts %i",i3,job->vcount);
+    assert_true(i0 >= 0 && (uint64_t)i0 < job->vcount, "Wrong i0 %i at seg %i. Num verts %i",segment_index+0,i0,job->vcount);
+    assert_true(i1 >= 0 && (uint64_t)i1 < job->vcount, "Wrong i1 %i at seg %i. Num verts %i",segment_index+1,i1,job->vcount);
+    if (i2 != -1) assert_true(i2 >= 0 && (uint64_t)i2 < job->vcount, "Wrong i2 %i at seg %i. Num verts %i",segment_index+2,i2,job->vcount);
+    if (i3 != -1) assert_true(i3 >= 0 && (uint64_t)i3 < job->vcount, "Wrong i3 %i at seg %i. Num verts %i",segment_index+3,i3,job->vcount);
     
     vector4 c0 = job->pipeline.vert_shader(verts[i0]);
     vector4 c1 = job->pipeline.vert_shader(verts[i1]);
@@ -213,7 +213,7 @@ extern t2d_pipeline *current_pipeline;
 tern t2d_commit_encode(t2d_encode_job *job){
     current_pipeline = &job->pipeline;
     if (!mid.x || !mid.y) mid = (vector2){job->pipeline.screen_size.width/2.f,job->pipeline.screen_size.height/2.f};
-    for (size_t i = 0; i < job->scount; i++){
+    for (size_t i = 0; i < job->scount/job->pipeline.prim_type; i++){
         if (draw((i * job->pipeline.prim_type), job, mid, (gpu_size){job->pipeline.screen_size.width,job->pipeline.screen_size.height}, job->pipeline.fb) == -1) return -1;
     }
     return true;
