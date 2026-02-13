@@ -1,13 +1,6 @@
 @includeC("data/struct/chunk_array.h")
 @includeC("types/vector3.h")
-
-enum primitives {
-    none,
-    pixel,
-    line,
-    trig,
-    quad
-}
+@includeC("three2d.h") 
 
 struct mesh {
     chunk_array:vector3 *vertices;

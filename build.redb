@@ -3,7 +3,7 @@
 
 bool gpu {
     if (not make_run("~/redlib","cross")) { return false; }
-    //if (not quick_cred("mesh.cred","mesh")){ return false; }
+    if (not quick_cred("mesh.cred","mesh")){ return false; }
     new_module("gpu");
     set_name("rend");
     
