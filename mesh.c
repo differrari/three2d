@@ -1,18 +1,7 @@
-#include "output.h"
+#include "mesh.h"
 
 
 
-
-
-char* primitives_to_string(primitives val){
-	switch (val) {
-		case primitives_none: return "none";
-		case primitives_pixel: return "pixel";
-		case primitives_line: return "line";
-		case primitives_trig: return "trig";
-		case primitives_quad: return "quad";
-	} 
-} 
 
 
 

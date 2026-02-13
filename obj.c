@@ -1,6 +1,5 @@
 #include "obj.h"
 #include "data/format/scanner/scanner.h"
-#include "syscalls/syscalls.h"
 
 void push_trig(mesh *m, int trig){
     chunk_array_push(m->segments, &trig);

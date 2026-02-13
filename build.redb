@@ -14,7 +14,7 @@ bool gpu {
     
     source("obj.c");
     source("examples/mesh_load.c");
-    source("three2d.c");
+    source("render.c");
     source("shaders.c");
     source("mesh.c");
     
