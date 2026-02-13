@@ -13,10 +13,11 @@
 
 draw_ctx ctx = {};
 vector3 camera_pos = {0,0,15};
+bool do_backface_culling = true;
 
 matrix4x4 proj_matrix;
 
-u8 *z_buffer;
+float *z_buffer;
 size_t z_buf_size = 0;
 
 void build_proj_matrix(float fov, float aspect, float near, float far){
@@ -26,9 +27,9 @@ void build_proj_matrix(float fov, float aspect, float near, float far){
     
     proj_matrix.m[0][0] = 1.0f/(tanfov*aspect);
     proj_matrix.m[1][1] = 1.0f/tanfov;
-    proj_matrix.m[2][2] = -(far+near)/(far-near);
-    proj_matrix.m[3][2] = -1;
-    proj_matrix.m[2][3] = -(2*far*near)/(far-near);
+    proj_matrix.m[2][2] = -near/(far-near);
+    proj_matrix.m[3][2] = -(far*near)/(far-near);
+    proj_matrix.m[2][3] = -1.0f;
 }
 
 vector4 vert_shader(vector3 pos, vector3 camera){
@@ -48,53 +49,70 @@ argbcolor frag_shader(vector4 frag_coord, int trig_id){
     };
 }
 
-static inline bool should_clip(vector4 v){//FIXME
-    return  v.x <= -v.w || v.x >= v.w ||
-             v.y <= -v.w || v.y >= v.w || 
-             v.z <= -v.w || v.z >= v.w ||
-             0 <= v.w;
-            false;
+static inline bool should_clip(vector4 v){
+    return v.x <= -v.w || v.x >= v.w ||
+           v.y <= -v.w || v.y >= v.w || 
+           v.z <= -v.w || v.z >= 0   ||
+           v.w <= 0;
 }
 
 static inline float triangle_area(vector3 a, vector3 b, vector3 c){
-    return 0.5f*((b.y-a.y)*(b.x+a.x) + (c.y-b.y)*(c.x+b.x) + (a.y-c.y)*(a.x+c.x));
+    return -0.5f*((b.y-a.y)*(b.x+a.x) + (c.y-b.y)*(c.x+b.x) + (a.y-c.y)*(a.x+c.x));
+}
+
+static inline float ceilf(float val){
+    int64_t whole = (uint64_t)val;
+    float frac = val - (float)whole;
+
+    return frac > 0 ? whole + 1 : whole;
+}
+
+static inline float floorf(float val){
+    return (int64_t)val;
 }
 
 void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int downscale){
-    int min_x = min(v0.x,min(v1.x,v2.x));
-    int min_y = min(v0.y,min(v1.y,v2.y));
-    int max_x = max(v0.x,max(v1.x,v2.x));
-    int max_y = max(v0.y,max(v1.y,v2.y));
+    float min_x = floorf(minf(v0.x,minf(v1.x,v2.x)));
+    float min_y = floorf(minf(v0.y,minf(v1.y,v2.y)));
+    float max_x = ceilf(maxf(v0.x,maxf(v1.x,v2.x)));
+    float max_y = ceilf(maxf(v0.y,maxf(v1.y,v2.y)));
     
-    min_x = clamp(min_x, 0, ctx.width-1);
-    min_y = clamp(min_y, 0, ctx.height-1);
-    max_x = clamp(max_x, 0, ctx.width-1);
-    max_y = clamp(max_y, 0, ctx.height-1);
+    min_x = clampf(min_x, 0, ctx.width-1);
+    min_y = clampf(min_y, 0, ctx.height-1);
+    max_x = clampf(max_x, 0, ctx.width-1);
+    max_y = clampf(max_y, 0, ctx.height-1);
     
     float total_area = triangle_area(v0, v1, v2);
-    if (total_area < 1) return;
+    float area_sign = total_area < 0 ? -1.0f : 1.0f;
+    total_area *= area_sign;
+
+    if ((do_backface_culling && (area_sign<0)) || (total_area < 1)) return;
+
     for (float y = min_y; y <= max_y; y += downscale){
         for (float x = min_x; x <= max_x; x += downscale){
             vector3 p = (vector3){x,y,0};
-            float alpha = triangle_area(p, v1, v2);
+            float alpha = area_sign * triangle_area(p, v1, v2);
             if (alpha < 0) continue;
-            float beta = triangle_area(p, v2, v0);
+            float beta = area_sign * triangle_area(p, v2, v0);
             if (beta < 0) continue;
-            float gamma = triangle_area(p, v0, v1);
+            float gamma = area_sign * triangle_area(p, v0, v1);
             if (gamma < 0) continue;
             
             float depth = (alpha * v0.z + beta * v1.z + gamma * v2.z)/total_area;
+            
             u8 depth_color = (u8)255-(128+((depth-4.5f)*100));
-            
-            u8 current_z = z_buffer[((int)y * ctx.width) + (int)x];
-            if (depth_color > current_z){
-                z_buffer[((int)y * ctx.width) + (int)x] = depth_color;
-            } else continue;
-            
             uint32_t color = (0xFF << 24) | (depth_color << 16) | (depth_color << 8) | depth_color;
+
             for (int yy = 0; yy < downscale && y + yy < ctx.height; yy++)
-                for (int xx = 0; xx < downscale  && x + xx < ctx.width; xx++)
-                    ctx.fb[((int)(y + yy) * ctx.width) + (int)(x + xx)] = color;
+                for (int xx = 0; xx < downscale  && x + xx < ctx.width; xx++) {
+                    int offs = ((int)(y + yy) * ctx.width) + (int)(x + xx);
+
+                    float current_inv_z = z_buffer[offs];
+                    if (new_inv_z > current_inv_z) continue;
+
+                    ctx.fb[offs] = color;
+                    z_buffer[offs] = new_inv_z;
+                }
         }
     }
     
@@ -128,10 +146,10 @@ tern draw(int segment_index, size_t num_segs, primitives prim_type, mesh *m, siz
     vector4 c2 = i2 > -1 ? vert_shader(mesh_get_vertex(m, i2), camera_pos) : (vector4){};
     vector4 c3 = i3 > -1 ? vert_shader(mesh_get_vertex(m, i3), camera_pos) : (vector4){};
     
-    // if (should_clip(c0) && should_clip(c1)
-        // && (i2 > -1 ? should_clip(c2) : true)
-        // && (i3 > -1 ? should_clip(c3) : true)
-    // ) return false;
+    if (should_clip(c0) && should_clip(c1)
+        && (i2 > -1 ? should_clip(c2) : true)
+        && (i3 > -1 ? should_clip(c3) : true)
+    ) return false;
     
     //NDC
     vector3 v0 = {c0.x/c0.w,c0.y/c0.w,c0.z/c0.w};
