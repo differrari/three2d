@@ -64,11 +64,11 @@ static inline float ceilf(float val){
     int64_t whole = (uint64_t)val;
     float frac = val - (float)whole;
 
-    return frac > 0 ? whole + 1 : whole;
+    return (float)(frac > 0 ? whole + 1 : whole);
 }
 
 static inline float floorf(float val){
-    return (int64_t)val;
+    return (float)(int64_t)val;
 }
 
 void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int downscale){
@@ -98,11 +98,12 @@ void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int dow
             float gamma = area_sign * triangle_area(p, v0, v1);
             if (gamma < 0) continue;
             
-            float depth = (alpha * v0.z + beta * v1.z + gamma * v2.z)/total_area;
+            float new_inv_z = (alpha * v0.z + beta * v1.z + gamma * v2.z)/total_area;
+            if (new_inv_z <= -1.0f || new_inv_z >= 0.0f) continue;
             
-            u8 depth_color = (u8)255-(128+((depth-4.5f)*100));
-            uint32_t color = (0xFF << 24) | (depth_color << 16) | (depth_color << 8) | depth_color;
-
+            u8 depth_color = (u8)(255 * (-new_inv_z));
+            uint32_t color = frag_shader((vector4){x,y,0,0},trig_id).color;//(0xFF << 24) | (depth_color << 16) | (depth_color << 8) | depth_color;
+            
             for (int yy = 0; yy < downscale && y + yy < ctx.height; yy++)
                 for (int xx = 0; xx < downscale  && x + xx < ctx.width; xx++) {
                     int offs = ((int)(y + yy) * ctx.width) + (int)(x + xx);
@@ -189,7 +190,7 @@ int main(int argc, char* argv[]){
     ctx.height = 1080;
     request_draw_ctx(&ctx);
     
-    z_buf_size = ctx.width * ctx.height;
+    z_buf_size = ctx.width * ctx.height * sizeof(float);
     z_buffer = zalloc(z_buf_size);
     
     vector2 mid = {ctx.width/2.f,ctx.height/2.f};
