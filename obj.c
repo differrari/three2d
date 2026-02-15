@@ -1,14 +1,14 @@
 #include "obj.h"
 #include "data/format/scanner/scanner.h"
 
-void push_trig(mesh *m, int trig){
+void push_idx(mesh *m, int trig){
     chunk_array_push(m->segments, &trig);
 }
 
 int handle_trig(mesh *mesh, string_slice sl){
     char *s1 = (char*)seek_to(sl.data, '/');
     int segment = (parse_int64(sl.data,s1-sl.data-1) & 0xFFFFFFFF) - 1;
-    push_trig(mesh, segment);
+    push_idx(mesh, segment);
     //TODO: extra trig data
     return segment;
 }
@@ -39,8 +39,8 @@ void handle_obj_line(void *ctx, string_slice line){
             string_slice sl = scan_to(&s, ' ');
             if (sl.length == 0) break;
             if (i > 2){
-                push_trig(m, first_s);
-                push_trig(m, last_s);
+                push_idx(m, first_s);
+                push_idx(m, last_s);
             }
             int seg = handle_trig(m, sl);
             if (i == 0) first_s = seg;

@@ -11,7 +11,7 @@ size_t mesh_num_verts(mesh* instance){
 	return chunk_array_count(instance->vertices);
 }
 
-size_t mesh_num_segments(mesh* instance){
+size_t mesh_num_polys(mesh* instance){
 	if (!instance->primitive_type){
 		return 0;
 	}

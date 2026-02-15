@@ -11,7 +11,7 @@ struct mesh {
         return vertices.count();
     }
 
-    size_t num_segments {
+    size_t num_polys {
         if (not primitive_type){ return 0; }
         size_t size = segments.count();
         if (size % primitive_type == 0) { return size/primitive_type; }

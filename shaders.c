@@ -2,9 +2,9 @@
 #include "types/matrix4.h"
 
 t2d_pipeline *current_pipeline;
+vector3 camera_pos = {-15,00,100};
 
 vector4 default_vert_shader(vector3 pos){
-    const vector3 camera_pos = {0,0,15};
     vector4 cam_pos = (vector4){pos.x + camera_pos.x, pos.y - camera_pos.y, pos.z - camera_pos.z, 1};
     
     vector4 out_v = matrix4_mul(cam_pos, current_pipeline->proj_matrix);

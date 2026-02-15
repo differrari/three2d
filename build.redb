@@ -11,7 +11,7 @@ bool include_gpu() {
     return true;
 }
 
-bool example {
+bool example(literal name) {
     new_module("gpu");
     set_name("rend");
     
@@ -21,7 +21,7 @@ bool example {
     set_target(target_native);
     
     if (not include_gpu()){ return false; }
-    source("examples/mesh_load.c");
+    source(name);
     
     if (compile()){
         gen_compile_commands(0);
@@ -33,5 +33,5 @@ bool example {
 int main {
     defer emit_compile_commands();
     rebuild_self();
-    example();
+    example("examples/octree.c");
 }

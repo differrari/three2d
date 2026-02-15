@@ -5,8 +5,6 @@
 #include "debug/assert.h"
 #include "data/struct/chunk_array.h"
 
-bool do_backface_culling = true;
-
 static inline bool should_clip(vector4 v){
     return v.x <= -v.w || v.x >= v.w ||
            v.y <= -v.w || v.y >= v.w || 
@@ -29,7 +27,7 @@ static inline float floorf(float val){
     return (float)(int64_t)val;
 }
 
-void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int downscale, gpu_size screen, u32 *fb, float *zbuf, fragment_shader shader){
+void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int downscale, gpu_size screen, t2d_pipeline *pipeline){
     float min_x = floorf(minf(v0.x,minf(v1.x,v2.x)));
     float min_y = floorf(minf(v0.y,minf(v1.y,v2.y)));
     float max_x = ceilf(maxf(v0.x,maxf(v1.x,v2.x)));
@@ -44,7 +42,7 @@ void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int dow
     float area_sign = total_area < 0 ? -1.0f : 1.0f;
     total_area *= area_sign;
 
-    if ((do_backface_culling && (area_sign<0)) || (total_area < 1)) return;
+    if ((pipeline->do_backface_culling && (area_sign<0)) || (total_area < 1)) return;
 
     for (float y = min_y; y <= max_y; y += downscale){
         for (float x = min_x; x <= max_x; x += downscale){
@@ -60,17 +58,17 @@ void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int dow
             if (new_inv_z <= -1.0f || new_inv_z >= 0.0f) continue;
             
             u8 depth_color = (u8)(255 * (-new_inv_z));
-            uint32_t color = shader((vector4){x,y,0,0},trig_id).color;//(0xFF << 24) | (depth_color << 16) | (depth_color << 8) | depth_color;
+            uint32_t color = pipeline->frag_shader((vector4){x,y,0,0},trig_id).color;//(0xFF << 24) | (depth_color << 16) | (depth_color << 8) | depth_color;
             
             for (int yy = 0; yy < downscale && y + yy < screen.height; yy++)
                 for (int xx = 0; xx < downscale  && x + xx < screen.width; xx++) {
                     int offs = ((int)(y + yy) * screen.width) + (int)(x + xx);
 
-                    float current_inv_z = zbuf[offs];
+                    float current_inv_z = pipeline->zbuf[offs];
                     if (new_inv_z > current_inv_z) continue;
 
-                    fb[offs] = color;
-                    zbuf[offs] = new_inv_z;
+                    pipeline->fb[offs] = color;
+                    pipeline->zbuf[offs] = new_inv_z;
                 }
         }
     }
@@ -132,7 +130,7 @@ tern draw(int segment_index, t2d_encode_job *job, vector2 origin, gpu_size scree
             vector3 s3 = {(v3.x+1)*0.5f*(screen.width-1),(1-((v3.y+1)*0.5f))*(screen.height-1),v3.z};
             rasterize_quad(s0,s1,s2,s3);
         } else {
-            rasterize_triangle(s0,s1,s2,segment_index, 1 + floor(min_depth/50), screen, job->pipeline.fb, job->pipeline.zbuf, job->pipeline.frag_shader);
+            rasterize_triangle(s0,s1,s2,segment_index, 1 + floor(min_depth/50), screen, &job->pipeline);
         }
     }
     
