@@ -1,5 +1,6 @@
 #include "obj.h"
 #include "data/format/scanner/scanner.h"
+#include "files/helpers.h"
 
 void push_idx(mesh *m, int trig){
     chunk_array_push(m->segments, &trig);
@@ -47,19 +48,6 @@ void handle_obj_line(void *ctx, string_slice line){
             last_s = seg;
         };
     }
-}
-
-void read_lines(char *file, void *ctx, void (*handle_line)(void *ctx, string_slice line)){
-    char *point = file;
-    do {
-        char *new_point = (char*)seek_to(point, '\n');
-        if (new_point == point) break;
-        int red = 1;
-        if (*(new_point-1) == '\r') red++;
-        handle_line(ctx, make_string_slice(point, 0, new_point-point-red));
-        point = new_point;
-    } while(point);
-    
 }
 
 mesh parse_obj(void* obj, size_t size, primitives prim_type){
