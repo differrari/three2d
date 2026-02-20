@@ -32,6 +32,8 @@ typedef struct {
     
     float* zbuf;
     size_t z_buf_size;
+    
+    int downscale;
 } t2d_pipeline;
 
 typedef struct {
@@ -48,7 +50,8 @@ void t2d_vert_shader(t2d_pipeline *pipeline, vertex_shader shader);
 void t2d_frag_shader(t2d_pipeline *pipeline, fragment_shader shader);
 int t2d_create_raw_buffer(size_t elem_size, size_t count);
 void* t2d_get_buffer_ptr(int buf_index);
-void t2d_make_camera(t2d_pipeline *pipeline, float fov, float aspect, float near, float far);
+void t2d_make_orthographic_camera(t2d_pipeline *pipeline, float top, float bottom, float left, float right, float near, float far);
+void t2d_make_perspective_camera(t2d_pipeline *pipeline, float fov, float aspect, float near, float far);
 t2d_encode_job t2d_begin_encode(t2d_pipeline pipeline);
 void t2d_clear(t2d_encode_job *job, argbcolor color);
 void t2d_set_buffer(t2d_encode_job *job, int buf_index, int count, buffer_type);

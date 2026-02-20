@@ -16,12 +16,25 @@ argbcolor default_frag_shader(vector4 frag_coord, int trig_id){
     return (argbcolor){
         .alpha = 0xFF,
         .red = ((trig_id) % 225) + 30,
-        .green = ((trig_id + 30) % 225) + 30,
-        .blue = ((trig_id + 50) % 225) + 30,
+        .green = ((trig_id + 0) % 225) + 30,
+        .blue = ((trig_id + 0) % 225) + 30,
     };
 }
 
-void t2d_make_camera(t2d_pipeline *pipeline, float fov, float aspect, float near, float far){
+void t2d_make_orthographic_camera(t2d_pipeline *pipeline, float top, float bottom, float left, float right, float near, float far){
+    pipeline->proj_matrix = matrix_zero();
+    
+    pipeline->proj_matrix.m[0][0] = 2.0f/(right-left);
+    pipeline->proj_matrix.m[1][1] = 2.0f/(top-bottom);
+    pipeline->proj_matrix.m[2][2] = -2.0f/(far-near);
+    pipeline->proj_matrix.m[3][3] = 1.0f;
+    
+    pipeline->proj_matrix.m[3][0] = -(right+left)/(right-left);
+    pipeline->proj_matrix.m[3][1] = -(top+bottom)/(top-bottom);
+    pipeline->proj_matrix.m[3][2] = -(far+near)/(far-near);
+}
+
+void t2d_make_perspective_camera(t2d_pipeline *pipeline, float fov, float aspect, float near, float far){
     float tanfov = 0.726542528f;
     
     pipeline->proj_matrix = matrix_zero();

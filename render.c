@@ -130,7 +130,7 @@ tern draw(int segment_index, t2d_encode_job *job, vector2 origin, gpu_size scree
             vector3 s3 = {(v3.x+1)*0.5f*(screen.width-1),(1-((v3.y+1)*0.5f))*(screen.height-1),v3.z};
             rasterize_quad(s0,s1,s2,s3);
         } else {
-            rasterize_triangle(s0,s1,s2,segment_index, 1 + floor(min_depth/50), screen, &job->pipeline);
+            rasterize_triangle(s0,s1,s2,segment_index, (job->pipeline.downscale + 1) + floor(min_depth/50), screen, &job->pipeline);
         }
     }
     

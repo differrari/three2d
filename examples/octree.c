@@ -93,7 +93,7 @@ int main(int argc, char* argv[]){
     int vbuf = t2d_create_buffer(BUF_VERTICES, vertices_count);
     int sbuf = t2d_create_buffer(BUF_SEGMENTS, segments_count);
     
-    t2d_make_camera(&pipeline, 72, (float)ctx.width/(float)ctx.height, 0.1f, 100);
+    t2d_make_perspective_camera(&pipeline, 72, (float)ctx.width/(float)ctx.height, 0.1f, 100);
     
     vector3 *vbuf_ptr = t2d_get_buffer_ptr(vbuf);
     int *sbuf_ptr = t2d_get_buffer_ptr(sbuf);

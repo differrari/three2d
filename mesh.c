@@ -1,12 +1,6 @@
 #include "mesh.h"
 
 
-
-
-
-
-
-
 size_t mesh_num_verts(mesh* instance){
 	return chunk_array_count(instance->vertices);
 }
