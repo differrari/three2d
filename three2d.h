@@ -19,6 +19,13 @@ typedef enum {
 
 typedef enum { BUF_RAW, BUF_VERTICES, BUF_SEGMENTS, BUF_COLORS, } buffer_type;
 
+typedef enum { 
+    pipeline_debug_bounds = 1 << 0, 
+    pipeline_debug_trigs = 1 << 1, 
+    pipeline_debug_print = 1 << 2, 
+    pipeline_debug_noclip = 1 << 3
+} pipeline_debug_options;
+
 typedef struct {
     vertex_shader vert_shader;
     fragment_shader frag_shader;
@@ -34,6 +41,8 @@ typedef struct {
     size_t z_buf_size;
     
     int downscale;
+
+    pipeline_debug_options debug_options;
 } t2d_pipeline;
 
 typedef struct {

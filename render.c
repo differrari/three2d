@@ -72,15 +72,26 @@ void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int dow
                 }
         }
     }
-    
-    // fb_draw_line(&ctx, min_x, min_y, max_x, min_y, 0xFFFF0000);
-    // fb_draw_line(&ctx, min_x, min_y, min_x, max_y, 0xFFFF0000);
-    // fb_draw_line(&ctx, min_x, max_y, max_x, max_y, 0xFFFF0000);
-    // fb_draw_line(&ctx, max_x, min_y, max_x, max_y, 0xFFFF0000);
-    
-    // fb_draw_line(&ctx, v0.x, v0.y, v1.x, v1.y, 0xFFB4DD13);
-    // fb_draw_line(&ctx, v1.x, v1.y, v2.x, v2.y, 0xFFB4DD13);
-    // fb_draw_line(&ctx, v2.x, v2.y, v0.x, v0.y, 0xFFB4DD13);
+
+    if (pipeline->debug_options){
+
+        draw_ctx ctx = buffer_to_draw_ctx(pipeline->fb,pipeline->screen_size.width, pipeline->screen_size.height);
+
+        if (pipeline->debug_options & pipeline_debug_bounds){
+            if (pipeline->debug_options & pipeline_debug_print) print("Bounds: %i,%i - %i,%i",min_x,min_y,max_x,max_y);
+            fb_draw_line(&ctx, min_x, min_y, max_x, min_y, 0xFFFF0000);
+            fb_draw_line(&ctx, min_x, min_y, min_x, max_y, 0xFFFF0000);
+            fb_draw_line(&ctx, min_x, max_y, max_x, max_y, 0xFFFF0000);
+            fb_draw_line(&ctx, max_x, min_y, max_x, max_y, 0xFFFF0000);
+        }
+
+        if (pipeline->debug_options & pipeline_debug_trigs){
+            if (pipeline->debug_options & pipeline_debug_print) print("Trig: %f,%f,%f %f,%f,%f %f,%f,%f",v0.x,v0.y,v0.z,v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
+            fb_draw_line(&ctx, v0.x, v0.y, v1.x, v1.y, 0xFFB4DD13);
+            fb_draw_line(&ctx, v1.x, v1.y, v2.x, v2.y, 0xFFB4DD13);
+            fb_draw_line(&ctx, v2.x, v2.y, v0.x, v0.y, 0xFFB4DD13);
+        }
+    }
     
 }
 
@@ -106,9 +117,11 @@ tern draw(int segment_index, t2d_encode_job *job, vector2 origin, gpu_size scree
     vector4 c2 = i2 > -1 ? job->pipeline.vert_shader(verts[i2]) : (vector4){};
     vector4 c3 = i3 > -1 ? job->pipeline.vert_shader(verts[i3]) : (vector4){};
     
-    if (should_clip(c0) && should_clip(c1)
+    if (should_clip(c0) 
+        && should_clip(c1)
         && (i2 > -1 ? should_clip(c2) : true)
         && (i3 > -1 ? should_clip(c3) : true)
+        && !(job->pipeline.debug_options & pipeline_debug_noclip)
     ) return false;
     
     //NDC
