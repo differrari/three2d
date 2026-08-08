@@ -78,7 +78,7 @@ void rasterize_triangle(vector3 v0, vector3 v1, vector3 v2, int trig_id, int dow
         draw_ctx ctx = buffer_to_draw_ctx(pipeline->fb,pipeline->screen_size.width, pipeline->screen_size.height);
 
         if (pipeline->debug_options & pipeline_debug_bounds){
-            if (pipeline->debug_options & pipeline_debug_print) print("Bounds: %i,%i - %i,%i",min_x,min_y,max_x,max_y);
+            if (pipeline->debug_options & pipeline_debug_print) print("Bounds: %f,%f - %f,%f",min_x,min_y,max_x,max_y);
             fb_draw_line(&ctx, min_x, min_y, max_x, min_y, 0xFFFF0000);
             fb_draw_line(&ctx, min_x, min_y, min_x, max_y, 0xFFFF0000);
             fb_draw_line(&ctx, min_x, max_y, max_x, max_y, 0xFFFF0000);
